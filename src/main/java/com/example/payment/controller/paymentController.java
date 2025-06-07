@@ -15,7 +15,7 @@ public class paymentController {
     private final RestTemplate restTemplate;
 
     // URL của Booking Service (thay đổi nếu khác)
-    private final String bookingServiceUrl = "https://seatserver.onrender.com/api";
+    private final String bookingServiceUrl = "https://seatserver.onrender.com/api/book";
 
     public paymentController(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
