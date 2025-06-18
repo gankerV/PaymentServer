@@ -1,0 +1,39 @@
+steps:
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/payment-service:$SHORT_SHA', '.']
+
+  # Step 2: Push Docker image lên Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/payment-service:$SHORT_SHA']
+
+  # Step 3: Replace image tag trong YAML
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        sed "s|IMAGE_TAG|gcr.io/$PROJECT_ID/payment-service:$SHORT_SHA|g" k8s/payment-deployment.yaml > k8s/payment-deployment-temp.yaml
+
+  # Step 4: Apply deployment YAML
+  - name: 'gcr.io/cloud-builders/kubectl'
+    env:
+      - CLOUDSDK_COMPUTE_REGION=us-central1
+      - CLOUDSDK_CONTAINER_CLUSTER=booking-cluster
+    args:
+      - apply
+      - -f
+      - k8s/payment-deployment-temp.yaml
+
+  # Step 5: Apply service YAML
+  - name: 'gcr.io/cloud-builders/kubectl'
+    env:
+      - CLOUDSDK_COMPUTE_REGION=us-central1
+      - CLOUDSDK_CONTAINER_CLUSTER=booking-cluster
+    args:
+      - apply
+      - -f
+      - k8s/payment-service.yaml
+
+images:
+  - gcr.io/$PROJECT_ID/payment-service:$SHORT_SHA
